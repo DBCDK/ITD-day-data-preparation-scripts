@@ -135,10 +135,11 @@ adhl = function(adhlFilename) {
 }
 
 // {{{2 danbib
-var entriesDB = level("entries.leveldb", {errorIfExists: true});
+danbib = function(path) {
 var glob = require("glob");
 var re = RegExp("<dc:([^ >]*) ?([^>]*)>([^<]*)</dc:", "g");
 var ignoreValueRe = RegExp("^(MATCH|NOBIRTH|WORK)");
+var filesProcessed = 0;
 handleFile = function(filename, done) {
   fs.readFile(filename, "utf8", function(err, data) {
     var resultObj = {}
@@ -152,7 +153,6 @@ handleFile = function(filename, done) {
     if(err) {
       throw err;
     }
-    console.log(filename);
     while(match=re.exec(data)) {
       match = Array.prototype.slice.call(match, 1, 4);
       if(!match[2].match(ignoreValueRe)) {
@@ -175,9 +175,12 @@ handleFile = function(filename, done) {
       resultObj[key] = Object.keys(resultObj[key]);
     });
     entriesStream.write(JSON.stringify(resultObj) + "\n", done);
+    ++filesProcessed;
+    if(filesProcessed % 1000 === 0) {
+      console.log(filesProcessed, "files processed");
+    }
   });
 };
-danbib = function(path) {
   entriesStream = fs.createWriteStream("entries.jsons");
   glob(path + "/*/*/*", function(err, files) {
     if(err) { throw err; }
