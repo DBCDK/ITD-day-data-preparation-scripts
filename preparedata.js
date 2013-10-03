@@ -57,8 +57,8 @@ adhl = function(adhlFilename) {
   processAdhlFile = function(filename, callback, done) {
     foreachLineInFile(filename, function(line, linedone) {
       ++lineno;
-      if(lineno % 10000 === 0) {
-        console.log("processing line:" + lineno);
+      if(lineno % 100000 === 0) {
+        console.log("processing line:", lineno, " time: ", new Date());
       }
       if(line === undefined) {
         return done()
@@ -80,7 +80,7 @@ adhl = function(adhlFilename) {
     // anonymise laanerid, with sequential patron ids instead
     var age = (+ (obj.date.slice(0,4))) - obj.birthyear;
     if(age < 0 || age > 130) {
-        console.log("warning, bad birthyear (age:" + age + "), ignoring entry: " + JSON.stringify(obj));
+        //console.log("warning, bad birthyear (age:" + age + "), ignoring entry: " + JSON.stringify(obj));
         return done();
     }
     obj.patron = patronIds[obj.patron] || (patronIds[obj.patron] = ++patronCounter);
