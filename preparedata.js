@@ -134,10 +134,72 @@ adhl = function(adhlFilename) {
   });
 }
 
+// {{{2 danbib
+var entriesDB = level("entries.leveldb", {errorIfExists: true});
+var glob = require("glob");
+var re = RegExp("<dc:([^ >]*) ?([^>]*)>([^<]*)</dc:", "g");
+var ignoreValueRe = RegExp("^(MATCH|NOBIRTH|WORK)");
+handleFile = function(filename, done) {
+  fs.readFile(filename, "utf8", function(err, data) {
+    var resultObj = {}
+    var addProperty = function(name, value) {
+      if(!resultObj[name]) {
+        resultObj[name] = {};
+      }
+      resultObj[name][value] = true;
+    }
+    var match;
+    if(err) {
+      throw err;
+    }
+    console.log(filename);
+    while(match=re.exec(data)) {
+      match = Array.prototype.slice.call(match, 1, 4);
+      if(!match[2].match(ignoreValueRe)) {
+        if(match[1]) {
+          match[1] = match[1] + " "
+        }
+        addProperty(match[0], match[1] + match[2]);
+      }
+    }
+    Object.keys(resultObj).forEach(function(key) {
+      var values = Object.keys(resultObj[key]);
+      values.forEach(function(value) {
+        var lc = value.toLowerCase().replace(",", "");
+        if(value !== lc) {
+          if(resultObj[key][lc]) {
+            delete resultObj[key][lc];
+          }
+        }
+      });
+      resultObj[key] = Object.keys(resultObj[key]);
+    });
+    entriesStream.write(JSON.stringify(resultObj) + "\n", done);
+  });
+};
+danbib = function(path) {
+  entriesStream = fs.createWriteStream("entries.jsons");
+  glob(path + "/*/*/*", function(err, files) {
+    if(err) { throw err; }
+    i = 0;
+    handleNext = function() {
+      if(i < files.length) {
+        handleFile(files[i], function() {
+          ++i;
+          process.nextTick(handleNext);
+        });
+      } else {
+        entriesStream.end();
+      }
+    }
+    handleNext();
+  });
+};
 // {{{2 Main dispatch
 if(process.argv[2] === "adhl" && process.argv[3]) {
   adhl(process.argv[3]);
-} else if(process.argv[2] === "danbib") {
+} else if(process.argv[2] === "danbib" && process.argv[3]) {
+  danbib(process.argv[3]);
 } else {
   console.log("Parameter neede, - read " + __dirname + "/README.md for usage info");
 }
