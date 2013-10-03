@@ -9,6 +9,10 @@ Install dependencies
 
     npm install
 
+(If it has already run, remove database, and jsons-dumps)
+
+    rm -rf *.leveldb *.jsons
+
 Generate json
 
     node preparedata.js adhl [filename of adhl sql dump]
