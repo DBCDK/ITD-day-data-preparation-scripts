@@ -21,10 +21,41 @@ foreachLineInFile = function(filename, fn) {
 }
 // {{{1 Actual implementation
 
-if(process.argv[2] === "adhl" && process.argv[3]) {
-  foreachLineInFile(process.argv[3], function(line) {
-    console.log(line);
+// {{{2 ADHL
+// {{{3 Extract data from datafile
+lineMatchRE = RegExp("([0-9]+)\t([0-9]+)\t([km])\t([0-9-]+)\t[0-9]+\t([0-9]+)\t[0-9]+\t([0-9-]+)");
+lineMatch = function(line) {
+  match = line.match(lineMatchRE);
+  if(match) {
+    return {
+      patron: match[1],
+      library: match[2],
+      sex: (match[3] === "m") ? "m" : "f",
+      birthyear: match[4].slice(0,4),
+      lid: match[5],
+      date: match[6]
+    }
+  }
+}
+processAdhlFile = function(filename, callback, done) {
+  foreachLineInFile(filename, function(line) {
+    if(line === undefined) {
+      return done()
+    }
+    obj = lineMatch(line);
+    if(obj) {
+      callback(obj);
+    }
   });
+}
+
+// {{{2 Main dispatch
+if(process.argv[2] === "adhl" && process.argv[3]) {
+  processAdhlFile(process.argv[3], function(obj) {
+      console.log(obj);
+      }, function() {
+      console.log("done");
+      });
 } else if(process.argv[2] === "danbib") {
 } else {
   console.log("Parameter neede, - read " + __dirname + "/README.md for usage info");
