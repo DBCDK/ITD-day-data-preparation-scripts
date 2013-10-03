@@ -1,0 +1,14 @@
+{
+  "name": "ITD-day-data-preparation-scripts",
+  "version": "0.0.1",
+  "homepage": "http://github.com/dbc-dk/ITD-day-data-preparation-scripts",
+  "description": "Scripts for anonymising and cleaning up data, such that it is possible to open it up.",
+  "dependencies": {
+    "levelup": "*",
+    "leveldown": "*",
+    "async": "*"
+  },
+  "scripts": {
+  },
+  "engines": {"node": "*"}
+}
